@@ -26,6 +26,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
+import com.turo.pushy.apns.util.SimpleApnsPushNotification;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,11 +37,17 @@ import static org.junit.Assert.assertTrue;
 
 public class DropwizardApnsClientMetricsListenerTest {
 
+    protected static String TOKEN = "token";
+    protected static String TOPIC = "topic";
+    protected static String PAYLOAD = "payload";
+
     private DropwizardApnsClientMetricsListener listener;
+    private SimpleApnsPushNotification notification;
 
     @Before
     public void setUp() {
-        this.listener = new DropwizardApnsClientMetricsListener();
+        this.listener = new DropwizardApnsClientMetricsListener<SimpleApnsPushNotification>();
+        this.notification = new SimpleApnsPushNotification(TOKEN, TOPIC, PAYLOAD);
     }
 
     @Test
@@ -48,7 +55,7 @@ public class DropwizardApnsClientMetricsListenerTest {
         final Meter writeFailures = (Meter) this.listener.getMetrics().get(DropwizardApnsClientMetricsListener.WRITE_FAILURES_METER_NAME);
         assertEquals(0, writeFailures.getCount());
 
-        this.listener.handleWriteFailure(null, 1);
+        this.listener.handleWriteFailure(null, notification);
         assertEquals(1, writeFailures.getCount());
     }
 
@@ -57,7 +64,7 @@ public class DropwizardApnsClientMetricsListenerTest {
         final Meter sentNotifications = (Meter) this.listener.getMetrics().get(DropwizardApnsClientMetricsListener.SENT_NOTIFICATIONS_METER_NAME);
         assertEquals(0, sentNotifications.getCount());
 
-        this.listener.handleNotificationSent(null, 1);
+        this.listener.handleNotificationSent(null, notification);
         assertEquals(1, sentNotifications.getCount());
     }
 
@@ -66,7 +73,7 @@ public class DropwizardApnsClientMetricsListenerTest {
         final Meter acceptedNotifications = (Meter) this.listener.getMetrics().get(DropwizardApnsClientMetricsListener.ACCEPTED_NOTIFICATIONS_METER_NAME);
         assertEquals(0, acceptedNotifications.getCount());
 
-        this.listener.handleNotificationAccepted(null, 1);
+        this.listener.handleNotificationAccepted(null, notification);
         assertEquals(1, acceptedNotifications.getCount());
     }
 
@@ -75,7 +82,7 @@ public class DropwizardApnsClientMetricsListenerTest {
         final Meter rejectedNotifications = (Meter) this.listener.getMetrics().get(DropwizardApnsClientMetricsListener.REJECTED_NOTIFICATIONS_METER_NAME);
         assertEquals(0, rejectedNotifications.getCount());
 
-        this.listener.handleNotificationRejected(null, 1);
+        this.listener.handleNotificationRejected(null, notification);
         assertEquals(1, rejectedNotifications.getCount());
     }
 

@@ -25,6 +25,7 @@ package com.turo.pushy.apns.metrics.dropwizard;
 import com.codahale.metrics.*;
 import com.turo.pushy.apns.ApnsClient;
 import com.turo.pushy.apns.ApnsClientMetricsListener;
+import com.turo.pushy.apns.ApnsPushNotification;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -73,12 +74,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author <a href="https://github.com/jchambers">Jon Chambers</a>
  */
-public class DropwizardApnsClientMetricsListener implements ApnsClientMetricsListener, MetricSet {
+public class DropwizardApnsClientMetricsListener<T extends ApnsPushNotification> implements ApnsClientMetricsListener<T>, MetricSet {
 
     private final MetricRegistry metrics;
 
     private final Timer notificationTimer;
-    private final ConcurrentMap<Long, Timer.Context> notificationTimerContexts;
+    private final ConcurrentMap<T, Timer.Context> notificationTimerContexts;
 
     private final Meter writeFailures;
     private final Meter sentNotifications;
@@ -167,11 +168,11 @@ public class DropwizardApnsClientMetricsListener implements ApnsClientMetricsLis
      *
      * @param apnsClient the client that failed to write the notification; note that this is ignored by
      * {@code DropwizardApnsClientMetricsListener} instances, which should always be used for exactly one client
-     * @param notificationId an opaque, unique identifier for the notification that could not be written
+     * @param notification the {@code Notification} subject to the metric installation
      */
     @Override
-    public void handleWriteFailure(final ApnsClient apnsClient, final long notificationId) {
-        this.stopTimerForNotification(notificationId);
+    public void handleWriteFailure(final ApnsClient apnsClient, final T notification) {
+        this.stopTimerForNotification(notification);
         this.writeFailures.mark();
     }
 
@@ -180,12 +181,12 @@ public class DropwizardApnsClientMetricsListener implements ApnsClientMetricsLis
      *
      * @param apnsClient the client that sent the notification; note that this is ignored by
      * {@code DropwizardApnsClientMetricsListener} instances, which should always be used for exactly one client
-     * @param notificationId an opaque, unique identifier for the notification that was sent
+     * @param notification the {@code Notification} subject to the metric installation
      */
     @Override
-    public void handleNotificationSent(final ApnsClient apnsClient, final long notificationId) {
+    public void handleNotificationSent(final ApnsClient apnsClient, final T notification) {
         this.sentNotifications.mark();
-        this.notificationTimerContexts.put(notificationId, this.notificationTimer.time());
+        this.notificationTimerContexts.put(notification, this.notificationTimer.time());
     }
 
     /**
@@ -193,11 +194,11 @@ public class DropwizardApnsClientMetricsListener implements ApnsClientMetricsLis
      *
      * @param apnsClient the client that sent the accepted notification; note that this is ignored by
      * {@code DropwizardApnsClientMetricsListener} instances, which should always be used for exactly one client
-     * @param notificationId an opaque, unique identifier for the notification that was accepted
+     * @param notification the {@code Notification} subject to the metric installation
      */
     @Override
-    public void handleNotificationAccepted(final ApnsClient apnsClient, final long notificationId) {
-        this.stopTimerForNotification(notificationId);
+    public void handleNotificationAccepted(final ApnsClient apnsClient, final T notification) {
+        this.stopTimerForNotification(notification);
         this.acceptedNotifications.mark();
     }
 
@@ -206,11 +207,11 @@ public class DropwizardApnsClientMetricsListener implements ApnsClientMetricsLis
      *
      * @param apnsClient the client that sent the rejected notification; note that this is ignored by
      * {@code DropwizardApnsClientMetricsListener} instances, which should always be used for exactly one client
-     * @param notificationId an opaque, unique identifier for the notification that was rejected
+     * @param notification the {@code Notification} subject to the metric installation
      */
     @Override
-    public void handleNotificationRejected(final ApnsClient apnsClient, final long notificationId) {
-        this.stopTimerForNotification(notificationId);
+    public void handleNotificationRejected(final ApnsClient apnsClient, final T notification) {
+        this.stopTimerForNotification(notification);
         this.rejectedNotifications.mark();
     }
 
@@ -247,8 +248,8 @@ public class DropwizardApnsClientMetricsListener implements ApnsClientMetricsLis
         this.connectionFailures.mark();
     }
 
-    private void stopTimerForNotification(final long notificationId) {
-        final Timer.Context timerContext = this.notificationTimerContexts.remove(notificationId);
+    private void stopTimerForNotification(final T notification) {
+        final Timer.Context timerContext = this.notificationTimerContexts.remove(notification);
 
         if (timerContext != null) {
             timerContext.stop();
