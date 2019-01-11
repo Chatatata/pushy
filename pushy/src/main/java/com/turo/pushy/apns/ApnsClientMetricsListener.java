@@ -39,7 +39,7 @@ package com.turo.pushy.apns;
  *
  * @since 0.6
  */
-public interface ApnsClientMetricsListener {
+public interface ApnsClientMetricsListener<T extends ApnsPushNotification> {
 
     /**
      * Indicates that an attempt to send a push notification failed before the notification was processed by the APNs
@@ -48,12 +48,11 @@ public interface ApnsClientMetricsListener {
      * closed before the notification was acknowledged by the serer.
      *
      * @param apnsClient the client that sent the notification
-     * @param notificationId an opaque identifier for the push notification that can be used to correlate this event
-     * with other events related to the same notification
+     * @param notification a reference to the subject notification object, should not be mutated by the consumer
      *
      * @since 0.6
      */
-    void handleWriteFailure(ApnsClient apnsClient, long notificationId);
+    void handleWriteFailure(ApnsClient apnsClient, T notification);
 
     /**
      * Indicates that a notification was sent to the APNs server. Note that a sent notification may still be either
@@ -61,34 +60,31 @@ public interface ApnsClientMetricsListener {
      * state of the notification.
      *
      * @param apnsClient the client that sent the notification
-     * @param notificationId an opaque identifier for the push notification that can be used to correlate this event
-     * with other events related to the same notification
+     * @param notification a reference to the subject notification object, should not be mutated by the consumer
      *
      * @since 0.6
      */
-    void handleNotificationSent(ApnsClient apnsClient, long notificationId);
+    void handleNotificationSent(ApnsClient apnsClient, T notification);
 
     /**
      * Indicates that a notification that was previously sent to an APNs server was accepted by the server.
      *
      * @param apnsClient the client that sent the notification
-     * @param notificationId an opaque identifier for the push notification that can be used to correlate this event
-     * with other events related to the same notification
+     * @param notification a reference to the subject notification object, should not be mutated by the consumer
      *
      * @since 0.6
      */
-    void handleNotificationAccepted(ApnsClient apnsClient, long notificationId);
+    void handleNotificationAccepted(ApnsClient apnsClient, T notification);
 
     /**
      * Indicates that a notification that was previously sent to an APNs server was rejected by the server.
      *
      * @param apnsClient the client that sent the notification
-     * @param notificationId an opaque identifier for the push notification that can be used to correlate this event
-     * with other events related to the same notification
+     * @param notification a reference to the subject notification object, should not be mutated by the consumer
      *
      * @since 0.6
      */
-    void handleNotificationRejected(ApnsClient apnsClient, long notificationId);
+    void handleNotificationRejected(ApnsClient apnsClient, T notification);
 
     /**
      * Indicates that the client has successfully created a new connection to the APNs server in its internal

@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -50,42 +51,42 @@ import static org.junit.Assert.*;
 @RunWith(JUnitParamsRunner.class)
 public class ApnsClientTest extends AbstractClientServerTest {
 
-    private static class TestMetricsListener implements ApnsClientMetricsListener {
+    private static class TestMetricsListener implements ApnsClientMetricsListener<SimpleApnsPushNotification> {
 
-        private final List<Long> writeFailures = new ArrayList<>();
-        private final List<Long> sentNotifications = new ArrayList<>();
-        private final List<Long> acceptedNotifications = new ArrayList<>();
-        private final List<Long> rejectedNotifications = new ArrayList<>();
+        private final List<SimpleApnsPushNotification> writeFailures = new ArrayList<>();
+        private final List<SimpleApnsPushNotification> sentNotifications = new ArrayList<>();
+        private final List<SimpleApnsPushNotification> acceptedNotifications = new ArrayList<>();
+        private final List<SimpleApnsPushNotification> rejectedNotifications = new ArrayList<>();
 
         private final AtomicInteger connectionsAdded = new AtomicInteger(0);
         private final AtomicInteger connectionsRemoved = new AtomicInteger(0);
         private final AtomicInteger failedConnectionAttempts = new AtomicInteger(0);
 
         @Override
-        public void handleWriteFailure(final ApnsClient apnsClient, final long notificationId) {
+        public void handleWriteFailure(final ApnsClient apnsClient, final SimpleApnsPushNotification notification) {
             synchronized (this.writeFailures) {
-                this.writeFailures.add(notificationId);
+                this.writeFailures.add(notification);
                 this.writeFailures.notifyAll();
             }
         }
 
         @Override
-        public void handleNotificationSent(final ApnsClient apnsClient, final long notificationId) {
-            this.sentNotifications.add(notificationId);
+        public void handleNotificationSent(final ApnsClient apnsClient, final SimpleApnsPushNotification notification) {
+            this.sentNotifications.add(notification);
         }
 
         @Override
-        public void handleNotificationAccepted(final ApnsClient apnsClient, final long notificationId) {
+        public void handleNotificationAccepted(final ApnsClient apnsClient, final SimpleApnsPushNotification notification) {
             synchronized (this.acceptedNotifications) {
-                this.acceptedNotifications.add(notificationId);
+                this.acceptedNotifications.add(notification);
                 this.acceptedNotifications.notifyAll();
             }
         }
 
         @Override
-        public void handleNotificationRejected(final ApnsClient apnsClient, final long notificationId) {
+        public void handleNotificationRejected(final ApnsClient apnsClient, final SimpleApnsPushNotification notification) {
             synchronized (this.rejectedNotifications) {
-                this.rejectedNotifications.add(notificationId);
+                this.rejectedNotifications.add(notification);
                 this.rejectedNotifications.notifyAll();
             }
         }
@@ -146,19 +147,19 @@ public class ApnsClientTest extends AbstractClientServerTest {
             }
         }
 
-        List<Long> getWriteFailures() {
+        List<SimpleApnsPushNotification> getWriteFailures() {
             return this.writeFailures;
         }
 
-        List<Long> getSentNotifications() {
+        List<SimpleApnsPushNotification> getSentNotifications() {
             return this.sentNotifications;
         }
 
-        List<Long> getAcceptedNotifications() {
+        List<SimpleApnsPushNotification> getAcceptedNotifications() {
             return this.acceptedNotifications;
         }
 
-        List<Long> getRejectedNotifications() {
+        List<SimpleApnsPushNotification> getRejectedNotifications() {
             return this.rejectedNotifications;
         }
 
@@ -211,9 +212,9 @@ public class ApnsClientTest extends AbstractClientServerTest {
         try {
             server.start(PORT).await();
 
-            final Future<PushNotificationResponse<SimpleApnsPushNotification>> sendFuture =
+            final Future<PushNotificationResponse<com.turo.pushy.apns.util.SimpleApnsPushNotification>> sendFuture =
                     cautiousClient.sendNotification(
-                            new SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD)).await();
+                            new com.turo.pushy.apns.util.SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD)).await();
 
             assertFalse("Clients must not connect to untrusted servers.",
                     sendFuture.isSuccess());
@@ -254,10 +255,10 @@ public class ApnsClientTest extends AbstractClientServerTest {
             server.start(PORT).await();
             client.close().await();
 
-            final SimpleApnsPushNotification pushNotification =
-                    new SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
+            final com.turo.pushy.apns.util.SimpleApnsPushNotification pushNotification =
+                    new com.turo.pushy.apns.util.SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
 
-            final Future<PushNotificationResponse<SimpleApnsPushNotification>> sendFuture =
+            final Future<PushNotificationResponse<com.turo.pushy.apns.util.SimpleApnsPushNotification>> sendFuture =
                     client.sendNotification(pushNotification).await();
 
             assertFalse("Once a client has closed, attempts to send push notifications should fail.",
@@ -282,9 +283,9 @@ public class ApnsClientTest extends AbstractClientServerTest {
         try {
             server.start(PORT).await();
 
-            final SimpleApnsPushNotification pushNotification = new SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
+            final com.turo.pushy.apns.util.SimpleApnsPushNotification pushNotification = new com.turo.pushy.apns.util.SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
 
-            final PushNotificationResponse<SimpleApnsPushNotification> response =
+            final PushNotificationResponse<com.turo.pushy.apns.util.SimpleApnsPushNotification> response =
                     client.sendNotification(pushNotification).get();
 
             assertTrue("Clients must send notifications that conform to the APNs protocol specification.",
@@ -314,10 +315,10 @@ public class ApnsClientTest extends AbstractClientServerTest {
         try {
             server.start(PORT).await();
 
-            final SimpleApnsPushNotification pushNotification =
-                    new SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
+            final com.turo.pushy.apns.util.SimpleApnsPushNotification pushNotification =
+                    new com.turo.pushy.apns.util.SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
 
-            final PushNotificationResponse<SimpleApnsPushNotification> response =
+            final PushNotificationResponse<com.turo.pushy.apns.util.SimpleApnsPushNotification> response =
                     client.sendNotification(pushNotification).get();
 
             assertTrue("Client should automatically re-send notifications with expired authentication tokens.",
@@ -345,16 +346,16 @@ public class ApnsClientTest extends AbstractClientServerTest {
     public void testSendManyNotifications(final boolean useTokenAuthentication) throws Exception {
         final int notificationCount = 1000;
 
-        final List<SimpleApnsPushNotification> pushNotifications = new ArrayList<>();
+        final List<com.turo.pushy.apns.util.SimpleApnsPushNotification> pushNotifications = new ArrayList<>();
 
         for (int i = 0; i < notificationCount; i++) {
             final String token = ApnsClientTest.generateRandomDeviceToken();
             final String payload = ApnsClientTest.generateRandomPayload();
 
-            pushNotifications.add(new SimpleApnsPushNotification(token, TOPIC, payload));
+            pushNotifications.add(new com.turo.pushy.apns.util.SimpleApnsPushNotification(token, TOPIC, payload));
         }
 
-        final List<Future<PushNotificationResponse<SimpleApnsPushNotification>>> futures = new ArrayList<>();
+        final List<Future<PushNotificationResponse<com.turo.pushy.apns.util.SimpleApnsPushNotification>>> futures = new ArrayList<>();
 
         final MockApnsServer server = this.buildServer(new AcceptAllPushNotificationHandlerFactory());
         final ApnsClient client = useTokenAuthentication ?
@@ -363,11 +364,11 @@ public class ApnsClientTest extends AbstractClientServerTest {
         try {
             server.start(PORT).await();
 
-            for (final SimpleApnsPushNotification pushNotification : pushNotifications) {
+            for (final com.turo.pushy.apns.util.SimpleApnsPushNotification pushNotification : pushNotifications) {
                 futures.add(client.sendNotification(pushNotification));
             }
 
-            for (final Future<PushNotificationResponse<SimpleApnsPushNotification>> future : futures) {
+            for (final Future<PushNotificationResponse<com.turo.pushy.apns.util.SimpleApnsPushNotification>> future : futures) {
                 future.await();
 
                 assertTrue("Send future should have succeeded, but failed with: " + future.cause(), future.isSuccess());
@@ -383,13 +384,13 @@ public class ApnsClientTest extends AbstractClientServerTest {
     public void testSendManyNotificationsWithListeners(final boolean useTokenAuthentication) throws Exception {
         final int notificationCount = 1000;
 
-        final List<SimpleApnsPushNotification> pushNotifications = new ArrayList<>();
+        final List<com.turo.pushy.apns.util.SimpleApnsPushNotification> pushNotifications = new ArrayList<>();
 
         for (int i = 0; i < notificationCount; i++) {
             final String token = ApnsClientTest.generateRandomDeviceToken();
             final String payload = ApnsClientTest.generateRandomPayload();
 
-            pushNotifications.add(new SimpleApnsPushNotification(token, TOPIC, payload));
+            pushNotifications.add(new com.turo.pushy.apns.util.SimpleApnsPushNotification(token, TOPIC, payload));
         }
 
         final MockApnsServer server = this.buildServer(new AcceptAllPushNotificationHandlerFactory());
@@ -401,14 +402,14 @@ public class ApnsClientTest extends AbstractClientServerTest {
         try {
             server.start(PORT).await();
 
-            for (final SimpleApnsPushNotification pushNotification : pushNotifications) {
-                final Future<PushNotificationResponse<SimpleApnsPushNotification>> future =
+            for (final com.turo.pushy.apns.util.SimpleApnsPushNotification pushNotification : pushNotifications) {
+                final Future<PushNotificationResponse<com.turo.pushy.apns.util.SimpleApnsPushNotification>> future =
                         client.sendNotification(pushNotification);
 
-                future.addListener(new GenericFutureListener<Future<PushNotificationResponse<SimpleApnsPushNotification>>>() {
+                future.addListener(new GenericFutureListener<Future<PushNotificationResponse<com.turo.pushy.apns.util.SimpleApnsPushNotification>>>() {
 
                     @Override
-                    public void operationComplete(final Future<PushNotificationResponse<SimpleApnsPushNotification>> future) {
+                    public void operationComplete(final Future<PushNotificationResponse<com.turo.pushy.apns.util.SimpleApnsPushNotification>> future) {
                         if (future.isSuccess()) {
                             countDownLatch.countDown();
                         }
@@ -429,8 +430,8 @@ public class ApnsClientTest extends AbstractClientServerTest {
     public void testRepeatedlySendSameNotification(final boolean useTokenAuthentication) throws Exception {
         final int notificationCount = 1000;
 
-        final SimpleApnsPushNotification pushNotification =
-                new SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
+        final com.turo.pushy.apns.util.SimpleApnsPushNotification pushNotification =
+                new com.turo.pushy.apns.util.SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
 
         final CountDownLatch countDownLatch = new CountDownLatch(notificationCount);
 
@@ -442,13 +443,13 @@ public class ApnsClientTest extends AbstractClientServerTest {
             server.start(PORT).await();
 
             for (int i = 0; i < notificationCount; i++) {
-                final Future<PushNotificationResponse<SimpleApnsPushNotification>> future =
+                final Future<PushNotificationResponse<com.turo.pushy.apns.util.SimpleApnsPushNotification>> future =
                         client.sendNotification(pushNotification);
 
-                future.addListener(new GenericFutureListener<Future<PushNotificationResponse<SimpleApnsPushNotification>>>() {
+                future.addListener(new GenericFutureListener<Future<PushNotificationResponse<com.turo.pushy.apns.util.SimpleApnsPushNotification>>>() {
 
                     @Override
-                    public void operationComplete(final Future<PushNotificationResponse<SimpleApnsPushNotification>> future) {
+                    public void operationComplete(final Future<PushNotificationResponse<com.turo.pushy.apns.util.SimpleApnsPushNotification>> future) {
                         // All we're concerned with here is that the client told us SOMETHING about what happened to the
                         // notification
                         countDownLatch.countDown();
@@ -480,8 +481,8 @@ public class ApnsClientTest extends AbstractClientServerTest {
             }
         };
 
-        final SimpleApnsPushNotification pushNotification =
-                new SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
+        final com.turo.pushy.apns.util.SimpleApnsPushNotification pushNotification =
+                new com.turo.pushy.apns.util.SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
 
         final MockApnsServer server = this.buildServer(handlerFactory);
         final ApnsClient client = useTokenAuthentication ?
@@ -490,7 +491,7 @@ public class ApnsClientTest extends AbstractClientServerTest {
         try {
             server.start(PORT).await();
 
-            final PushNotificationResponse<SimpleApnsPushNotification> response =
+            final PushNotificationResponse<com.turo.pushy.apns.util.SimpleApnsPushNotification> response =
                     client.sendNotification(pushNotification).get();
 
             assertFalse(response.isAccepted());
@@ -514,8 +515,8 @@ public class ApnsClientTest extends AbstractClientServerTest {
         try {
             server.start(PORT).await();
 
-            final SimpleApnsPushNotification pushNotification =
-                    new SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
+            final com.turo.pushy.apns.util.SimpleApnsPushNotification pushNotification =
+                    new com.turo.pushy.apns.util.SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
 
             client.sendNotification(pushNotification).await();
 
@@ -558,8 +559,8 @@ public class ApnsClientTest extends AbstractClientServerTest {
         try {
             server.start(PORT).await();
 
-            final SimpleApnsPushNotification pushNotification =
-                    new SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
+            final com.turo.pushy.apns.util.SimpleApnsPushNotification pushNotification =
+                    new com.turo.pushy.apns.util.SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
 
             client.sendNotification(pushNotification).await();
 
@@ -583,8 +584,8 @@ public class ApnsClientTest extends AbstractClientServerTest {
                 this.buildTokenAuthenticationClient(metricsListener) : this.buildTlsAuthenticationClient(metricsListener);
 
         try {
-            final SimpleApnsPushNotification pushNotification =
-                    new SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
+            final com.turo.pushy.apns.util.SimpleApnsPushNotification pushNotification =
+                    new com.turo.pushy.apns.util.SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
 
             client.sendNotification(pushNotification).await();
 
@@ -608,13 +609,13 @@ public class ApnsClientTest extends AbstractClientServerTest {
                 this.buildTokenAuthenticationClient() : this.buildTlsAuthenticationClient();
 
         try {
-            final SimpleApnsPushNotification pushNotification =
-                    new SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
+            final com.turo.pushy.apns.util.SimpleApnsPushNotification pushNotification =
+                    new com.turo.pushy.apns.util.SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
 
             for (int i = 0; i < 3; i++) {
                 // We should see delays of roughly 0, 1, and 2 seconds; 4 seconds per notification is excessive, but
                 // better to play it safe with a timed assertion.
-                final Future<PushNotificationResponse<SimpleApnsPushNotification>> sendFuture =
+                final Future<PushNotificationResponse<com.turo.pushy.apns.util.SimpleApnsPushNotification>> sendFuture =
                         client.sendNotification(pushNotification);
 
                 assertTrue(sendFuture.await(4, TimeUnit.SECONDS));
@@ -632,18 +633,18 @@ public class ApnsClientTest extends AbstractClientServerTest {
                 this.buildTokenAuthenticationClient() : this.buildTlsAuthenticationClient();
 
         try {
-            final SimpleApnsPushNotification pushNotification =
-                    new SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
+            final com.turo.pushy.apns.util.SimpleApnsPushNotification pushNotification =
+                    new com.turo.pushy.apns.util.SimpleApnsPushNotification(DEVICE_TOKEN, TOPIC, PAYLOAD);
 
             final int notificationCount = 3;
 
             final CountDownLatch countDownLatch = new CountDownLatch(notificationCount);
 
             for (int i = 0; i < notificationCount; i++) {
-                client.sendNotification(pushNotification).addListener(new PushNotificationResponseListener<SimpleApnsPushNotification>() {
+                client.sendNotification(pushNotification).addListener(new PushNotificationResponseListener<com.turo.pushy.apns.util.SimpleApnsPushNotification>() {
 
                     @Override
-                    public void operationComplete(final PushNotificationFuture<SimpleApnsPushNotification, PushNotificationResponse<SimpleApnsPushNotification>> simpleApnsPushNotificationPushNotificationResponsePushNotificationFuture) throws Exception {
+                    public void operationComplete(final PushNotificationFuture<com.turo.pushy.apns.util.SimpleApnsPushNotification, PushNotificationResponse<com.turo.pushy.apns.util.SimpleApnsPushNotification>> simpleApnsPushNotificationPushNotificationResponsePushNotificationFuture) throws Exception {
                         countDownLatch.countDown();
                     }
                 });

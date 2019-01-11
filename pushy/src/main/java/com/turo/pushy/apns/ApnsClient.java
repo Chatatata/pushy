@@ -89,7 +89,6 @@ public class ApnsClient {
     private final ApnsChannelPool channelPool;
 
     private final ApnsClientMetricsListener metricsListener;
-    private final AtomicLong nextNotificationId = new AtomicLong(0);
 
     private final AtomicBoolean isClosed = new AtomicBoolean(false);
 
@@ -98,22 +97,22 @@ public class ApnsClient {
 
     private static final Logger log = LoggerFactory.getLogger(ApnsClient.class);
 
-    private static class NoopApnsClientMetricsListener implements ApnsClientMetricsListener {
+    private static class NoopApnsClientMetricsListener<T extends ApnsPushNotification> implements ApnsClientMetricsListener<T> {
 
         @Override
-        public void handleWriteFailure(final ApnsClient apnsClient, final long notificationId) {
+        public void handleWriteFailure(final ApnsClient apnsClient, final T notification) {
         }
 
         @Override
-        public void handleNotificationSent(final ApnsClient apnsClient, final long notificationId) {
+        public void handleNotificationSent(final ApnsClient apnsClient, final T notification) {
         }
 
         @Override
-        public void handleNotificationAccepted(final ApnsClient apnsClient, final long notificationId) {
+        public void handleNotificationAccepted(final ApnsClient apnsClient, final T notification) {
         }
 
         @Override
-        public void handleNotificationRejected(final ApnsClient apnsClient, final long notificationId) {
+        public void handleNotificationRejected(final ApnsClient apnsClient, final T notification) {
         }
 
         @Override
@@ -203,8 +202,6 @@ public class ApnsClient {
             final PushNotificationPromise<T, PushNotificationResponse<T>> responsePromise =
                     new PushNotificationPromise<>(this.eventLoopGroup.next(), notification);
 
-            final long notificationId = this.nextNotificationId.getAndIncrement();
-
             this.channelPool.acquire().addListener(new GenericFutureListener<Future<Channel>>() {
                 @Override
                 public void operationComplete(final Future<Channel> acquireFuture) throws Exception {
@@ -216,9 +213,9 @@ public class ApnsClient {
                             @Override
                             public void operationComplete(final ChannelFuture future) throws Exception {
                                 if (future.isSuccess()) {
-                                    ApnsClient.this.metricsListener.handleNotificationSent(ApnsClient.this, notificationId);
+                                    ApnsClient.this.metricsListener.handleNotificationSent(ApnsClient.this, notification);
                                 } else {
-                                    ApnsClient.this.metricsListener.handleWriteFailure(ApnsClient.this, notificationId);
+                                    ApnsClient.this.metricsListener.handleWriteFailure(ApnsClient.this, notification);
                                     responsePromise.tryFailure(future.cause());
                                 }
                             }
@@ -238,12 +235,12 @@ public class ApnsClient {
                         final PushNotificationResponse response = future.getNow();
 
                         if (response.isAccepted()) {
-                            ApnsClient.this.metricsListener.handleNotificationAccepted(ApnsClient.this, notificationId);
+                            ApnsClient.this.metricsListener.handleNotificationAccepted(ApnsClient.this, notification);
                         } else {
-                            ApnsClient.this.metricsListener.handleNotificationRejected(ApnsClient.this, notificationId);
+                            ApnsClient.this.metricsListener.handleNotificationRejected(ApnsClient.this, notification);
                         }
                     } else {
-                        ApnsClient.this.metricsListener.handleWriteFailure(ApnsClient.this, notificationId);
+                        ApnsClient.this.metricsListener.handleWriteFailure(ApnsClient.this, notification);
                     }
                 }
             });
