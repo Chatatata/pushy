@@ -24,6 +24,7 @@ package com.turo.pushy.apns.metrics.micrometer;
 
 import com.turo.pushy.apns.ApnsClient;
 import com.turo.pushy.apns.ApnsClientMetricsListener;
+import com.turo.pushy.apns.ApnsPushNotification;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -76,10 +77,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author <a href="https://github.com/jchambers">Jon Chambers</a>
  */
-public class MicrometerApnsClientMetricsListener implements ApnsClientMetricsListener {
+public class MicrometerApnsClientMetricsListener<T extends ApnsPushNotification> implements ApnsClientMetricsListener<T> {
 
     private final Timer notificationTimer;
-    private final ConcurrentMap<Long, Long> notificationStartTimes;
+    private final ConcurrentMap<T, Long> notificationStartTimes;
 
     private final Counter writeFailures;
     private final Counter sentNotifications;
@@ -168,11 +169,11 @@ public class MicrometerApnsClientMetricsListener implements ApnsClientMetricsLis
      *
      * @param apnsClient the client that failed to write the notification; note that this is ignored by
      * {@code MicrometerApnsClientMetricsListener} instances, which should always be used for exactly one client
-     * @param notificationId an opaque, unique identifier for the notification that could not be written
+     * @param notification the {@code Notification} subject to the metric installation
      */
     @Override
-    public void handleWriteFailure(final ApnsClient apnsClient, final long notificationId) {
-        this.notificationStartTimes.remove(notificationId);
+    public void handleWriteFailure(final ApnsClient apnsClient, final T notification) {
+        this.notificationStartTimes.remove(notification);
         this.writeFailures.increment();
     }
 
@@ -181,11 +182,11 @@ public class MicrometerApnsClientMetricsListener implements ApnsClientMetricsLis
      *
      * @param apnsClient the client that sent the notification; note that this is ignored by
      * {@code MicrometerApnsClientMetricsListener} instances, which should always be used for exactly one client
-     * @param notificationId an opaque, unique identifier for the notification that was sent
+     * @param notification the {@code Notification} subject to the metric installation
      */
     @Override
-    public void handleNotificationSent(final ApnsClient apnsClient, final long notificationId) {
-        this.notificationStartTimes.put(notificationId, System.nanoTime());
+    public void handleNotificationSent(final ApnsClient apnsClient, final T notification) {
+        this.notificationStartTimes.put(notification, System.nanoTime());
         this.sentNotifications.increment();
     }
 
@@ -194,11 +195,11 @@ public class MicrometerApnsClientMetricsListener implements ApnsClientMetricsLis
      *
      * @param apnsClient the client that sent the accepted notification; note that this is ignored by
      * {@code MicrometerApnsClientMetricsListener} instances, which should always be used for exactly one client
-     * @param notificationId an opaque, unique identifier for the notification that was accepted
+     * @param notification the {@code Notification} subject to the metric installation
      */
     @Override
-    public void handleNotificationAccepted(final ApnsClient apnsClient, final long notificationId) {
-        this.recordEndTimeForNotification(notificationId);
+    public void handleNotificationAccepted(final ApnsClient apnsClient, final T notification) {
+        this.recordEndTimeForNotification(notification);
         this.acceptedNotifications.increment();
     }
 
@@ -207,17 +208,17 @@ public class MicrometerApnsClientMetricsListener implements ApnsClientMetricsLis
      *
      * @param apnsClient the client that sent the rejected notification; note that this is ignored by
      * {@code MicrometerApnsClientMetricsListener} instances, which should always be used for exactly one client
-     * @param notificationId an opaque, unique identifier for the notification that was rejected
+     * @param notification the {@code Notification} subject to the metric installation
      */
     @Override
-    public void handleNotificationRejected(final ApnsClient apnsClient, final long notificationId) {
-        this.recordEndTimeForNotification(notificationId);
+    public void handleNotificationRejected(final ApnsClient apnsClient, final T notification) {
+        this.recordEndTimeForNotification(notification);
         this.rejectedNotifications.increment();
     }
 
-    private void recordEndTimeForNotification(final long notificationId) {
+    private void recordEndTimeForNotification(final T notification) {
         final long endTime = System.nanoTime();
-        final Long startTime = this.notificationStartTimes.remove(notificationId);
+        final Long startTime = this.notificationStartTimes.remove(notification);
 
         if (startTime != null) {
             this.notificationTimer.record(endTime - startTime, TimeUnit.NANOSECONDS);

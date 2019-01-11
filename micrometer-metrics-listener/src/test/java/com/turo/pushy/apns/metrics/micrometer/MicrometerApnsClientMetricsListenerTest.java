@@ -22,6 +22,7 @@
 
 package com.turo.pushy.apns.metrics.micrometer;
 
+import com.turo.pushy.apns.util.SimpleApnsPushNotification;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -33,13 +34,19 @@ import static org.junit.Assert.assertEquals;
 
 public class MicrometerApnsClientMetricsListenerTest {
 
+    protected static String TOKEN = "token";
+    protected static String TOPIC = "topic";
+    protected static String PAYLOAD = "payload";
+
     private MeterRegistry meterRegistry;
     private MicrometerApnsClientMetricsListener listener;
+    private SimpleApnsPushNotification notification;
 
     @Before
     public void setUp() {
         this.meterRegistry = new SimpleMeterRegistry();
-        this.listener = new MicrometerApnsClientMetricsListener(this.meterRegistry);
+        this.listener = new MicrometerApnsClientMetricsListener<SimpleApnsPushNotification>(this.meterRegistry);
+        this.notification = new SimpleApnsPushNotification(TOKEN, TOPIC, PAYLOAD);
     }
 
     @Test
@@ -47,7 +54,7 @@ public class MicrometerApnsClientMetricsListenerTest {
         final Counter writeFailures = this.meterRegistry.get(MicrometerApnsClientMetricsListener.WRITE_FAILURES_COUNTER_NAME).counter();
         assertEquals(0, (int) writeFailures.count());
 
-        this.listener.handleWriteFailure(null, 1);
+        this.listener.handleWriteFailure(null, notification);
         assertEquals(1, (int) writeFailures.count());
     }
 
@@ -56,7 +63,7 @@ public class MicrometerApnsClientMetricsListenerTest {
         final Counter sentNotifications = this.meterRegistry.get(MicrometerApnsClientMetricsListener.SENT_NOTIFICATIONS_COUNTER_NAME).counter();
         assertEquals(0, (int) sentNotifications.count());
 
-        this.listener.handleNotificationSent(null, 1);
+        this.listener.handleNotificationSent(null, notification);
         assertEquals(1, (int) sentNotifications.count());
     }
 
@@ -65,7 +72,7 @@ public class MicrometerApnsClientMetricsListenerTest {
         final Counter acceptedNotifications = this.meterRegistry.get(MicrometerApnsClientMetricsListener.ACCEPTED_NOTIFICATIONS_COUNTER_NAME).counter();
         assertEquals(0, (int) acceptedNotifications.count());
 
-        this.listener.handleNotificationAccepted(null, 1);
+        this.listener.handleNotificationAccepted(null, notification);
         assertEquals(1, (int) acceptedNotifications.count());
     }
 
@@ -74,7 +81,7 @@ public class MicrometerApnsClientMetricsListenerTest {
         final Counter rejectedNotifications = this.meterRegistry.get(MicrometerApnsClientMetricsListener.REJECTED_NOTIFICATIONS_COUNTER_NAME).counter();
         assertEquals(0, (int) rejectedNotifications.count());
 
-        this.listener.handleNotificationRejected(null, 1);
+        this.listener.handleNotificationRejected(null, notification);
         assertEquals(1, (int) rejectedNotifications.count());
     }
 
