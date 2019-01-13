@@ -138,7 +138,7 @@
                     <properties>
                         <property>
                             <name>listener</name>
-                            <value>PrintTestNameRunListener</value>
+                            <value>sa.com.stcpay.blink.pushy.PrintTestNameRunListener</value>
                         </property>
                     </properties>
                 </configuration>
@@ -179,7 +179,7 @@
                             <properties>
                                 <property>
                                     <name>listener</name>
-                                    <value>PrintTestNameRunListener</value>
+                                    <value>sa.com.stcpay.blink.pushy.PrintTestNameRunListener</value>
                                 </property>
                             </properties>
                         </configuration>
