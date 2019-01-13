@@ -30,8 +30,8 @@
 
     <parent>
         <artifactId>pushy-parent</artifactId>
-        <groupId>com.turo</groupId>
-        <version>0.13.7</version>
+        <groupId>sa.com.stcpay.blink.obelisk</groupId>
+        <version>0.14.0</version>
     </parent>
 
     <dependencies>
