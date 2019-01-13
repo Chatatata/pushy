@@ -1,22 +1,20 @@
 language: java
-
 matrix:
-    include:
-        - os: linux
-          jdk: oraclejdk8
-          env: PUSHY_SSL_PROVIDER=jdk
-
-        - os: linux
-          jdk: oraclejdk8
-
-        - os: linux
-          jdk: openjdk7
-          install: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -pl '!micrometer-metrics-listener'
-          script: mvn test -B -pl '!micrometer-metrics-listener'
-
-        - os: osx
-          osx_image: xcode8.3
-          env: PUSHY_SSL_PROVIDER=jdk
-
-        - os: osx
-          osx_image: xcode8.3
+  include:
+  - os: linux
+    jdk: oraclejdk8
+    env: PUSHY_SSL_PROVIDER=jdk
+  - os: linux
+    jdk: oraclejdk8
+  - os: linux
+    jdk: openjdk7
+    install: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -pl '!micrometer-metrics-listener'
+    script: mvn test -B -pl '!micrometer-metrics-listener'
+  - os: osx
+    osx_image: xcode8.3
+    env: PUSHY_SSL_PROVIDER=jdk
+  - os: osx
+    osx_image: xcode8.3
+notifications:
+  slack:
+    secure: P1Xiodv1XPPMOfecBrLh/tjQnZo9b0894EZJGFxaoaxP3i2raFsy9I1+1V+c1hitsnKGWfBp6zaV1Qh8xMqpLyt5dPz8Aq0Mpo2JPLt14bHrjpq7Anl7/rCvz0h99DPrbbm0qc0WyV01D6/2hBF1N/FsGodj/6MZfqSHoVAPbxNnNuYGk4eojI/qqxwLcjiEzFO2G1RXpEEPSFuhk2Q9wu07SiWVouRiJVNl6quTS+gtWZ7VQtNSToQij4g62Fw0XAqEJLIasF/+rCtQ6FvPgwNhkf3PibagwIsnF2AWaB6EP0E2k0bhKEfyLWErCPhen4TOIzZ9PuvfiafwJbT48fho0ct5NbAddCPhWaHr3k7yNi/T7L2mNt03q++ApvlIh2V/jYXHJUnecTDBVL9scM+Y95vld9qMv/LrcZ4FnI6OQ6DZL63ZHEPuSHocDr8jtx2Xp+zUZkIxvUsl0BoxGkjSjTlXXOZ7jZkaVHotd6gmvZ7sBB42rkvZtXxLSfUXUnmD1CaF8FJfNEVJOnjsQbd2spJRt5fgz0TaZj1QRVy/Djpjmqewj8IJsBgHXuG67+/A9RrDqqxmdZ0SJ6IhOJHS3XjaQlsTVBw3GYmg8RVMW3+cY+OxeMf4hekxzUg6M/ej+NeRwnQ0II5OfKF3izwVXveusD3EfpE/drB7IT0=
