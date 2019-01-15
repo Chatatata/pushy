@@ -30,9 +30,9 @@
     <description>A metrics listener for Pushy that uses the Dropwizard Metrics library for gathering and reporting metrics.</description>
 
     <parent>
-        <groupId>sa.com.stcpay.blink.obelisk</groupId>
+        <groupId>sa.com.stcpay</groupId>
         <artifactId>pushy-parent</artifactId>
-        <version>0.14.0</version>
+        <version>0.14.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
