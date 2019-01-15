@@ -1,9 +1,11 @@
 # pushy
 
-[![Build Status](https://travis-ci.org/relayrides/pushy.svg?branch=master)](https://travis-ci.org/relayrides/pushy)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.turo/pushy/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.turo/pushy)
+[![Build Status](https://travis-ci.org/Chatatata/pushy.svg?branch=master)](https://travis-ci.org/Chatatata/pushy)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/sa.com.stcpay/pushy/badge.svg)](https://maven-badges.herokuapp.com/maven-central/sa.com.stcpay/pushy)
 
-Pushy is a Java library for sending [APNs](https://developer.apple.com/documentation/usernotifications) (iOS, macOS, and Safari) push notifications. It is written and maintained by the engineers at [Turo](https://turo.com/).
+Pushy is a Java library for sending [APNs](https://developer.apple.com/documentation/usernotifications) (iOS, macOS, and Safari) push notifications. 
+
+This repository is a fork of [`relayrides/pushy`](https://github.com/relayrides/pushy), and now maintained by engineers at [Saudi Digital Payments Co](https://github.com/STCPay/).
 
 Pushy sends push notifications using Apple's HTTP/2-based APNs protocol and supports both TLS and token-based authentication. It distinguishes itself from other push notification libraries with a focus on [thorough documentation](http://relayrides.github.io/pushy/apidocs/0.13/), asynchronous operation, and design for industrial-scale operation; with Pushy, it's easy and efficient to maintain multiple parallel connections to the APNs gateway to send large numbers of notifications to many different applications ("topics").
 
@@ -17,9 +19,9 @@ If you use [Maven](http://maven.apache.org/), you can add Pushy to your project 
 
 ```xml
 <dependency>
-    <groupId>com.turo</groupId>
+    <groupId>sa.com.stcpay</groupId>
     <artifactId>pushy</artifactId>
-    <version>0.13.6</version>
+    <version>0.14.0-SNAPSHOT</version>
 </dependency>
 ```
 
