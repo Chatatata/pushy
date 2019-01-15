@@ -26,7 +26,7 @@
 
     <parent>
         <artifactId>pushy-parent</artifactId>
-        <groupId>sa.com.stcpay.blink.obelisk</groupId>
+        <groupId>sa.com.stcpay</groupId>
         <version>0.14.0</version>
     </parent>
 

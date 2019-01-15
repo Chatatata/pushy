@@ -44,7 +44,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>sa.com.stcpay.blink.obelisk</groupId>
+    <groupId>sa.com.stcpay</groupId>
     <artifactId>pushy-parent</artifactId>
     <packaging>pom</packaging>
     <version>0.14.0</version>
@@ -63,9 +63,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:https://github.com/relayrides/pushy.git</connection>
-        <developerConnection>scm:git:git@github.com:relayrides/pushy.git</developerConnection>
-        <url>https://github.com/relayrides/pushy</url>
+        <connection>scm:git:https://github.com/Chatatata/pushy.git</connection>
+        <developerConnection>scm:git:git@github.com:Chatatata/pushy.git</developerConnection>
+        <url>https://github.com/Chatatata/pushy</url>
     </scm>
 
     <developers>
@@ -81,11 +81,23 @@
             </roles>
             <timezone>-5</timezone>
         </developer>
+        <developer>
+            <id>Chatatata</id>
+            <name>Buğra Ekuklu</name>
+            <email>ekuklu@icloud.com</email>
+            <url>https://github.com/Chatatata/</url>
+            <organization>Saudi Digital Payments Co.</organization>
+            <organizationUrl>https://www.stcpay.com.sa/</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>+3</timezone>
+        </developer>
     </developers>
 
     <organization>
-        <name>Turo</name>
-        <url>https://turo.com/</url>
+        <name>Saudi Digital Payments Co.</name>
+        <url>https://www.stcpay.com.sa/</url>
     </organization>
 
     <parent>
